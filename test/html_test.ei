@@ -1,4 +1,4 @@
-import { html, escapeHtml } from "../src/html"
+import { html, escapeHtml } from ".src.html"
 
 test "html_framework: should escape special HTML characters" {
     assert(escapeHtml("<script>alert('xss')</script>") == "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;")
