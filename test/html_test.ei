@@ -35,6 +35,35 @@ test "html_framework: should render void tags correctly" {
     assert(result == expected)
 }
 
+test "html_framework: should render new form tags (select/option/input/textarea)" {
+    val result = html {
+        body {
+            select(id = "method") {
+                option("initialize", "initialize")
+                option("tools/list", "tools/list")
+            }
+            input(inputType = "text", id = "params", placeholder = "{\"name\":\"sum\"}")
+            textarea("payload")
+        }
+    }
+
+    val expected = "<!DOCTYPE html><html><body><select id=\"method\"><option value=\"initialize\">initialize</option><option value=\"tools/list\">tools/list</option></select><input type=\"text\" id=\"params\" placeholder=\"{&quot;name&quot;:&quot;sum&quot;}\" /><textarea>payload</textarea></body></html>"
+    assert(result == expected)
+}
+
+test "html_framework: should render pre/code and raw/script injection" {
+    val result = html {
+        body {
+            pre("argument<Int>(a)")
+            script("var m = document.getElementById('method');")
+            raw("<marquee>raw</marquee>")
+        }
+    }
+
+    val expected = "<!DOCTYPE html><html><body><pre>argument&lt;Int&gt;(a)</pre><script>var m = document.getElementById('method');</script><marquee>raw</marquee></body></html>"
+    assert(result == expected)
+}
+
 test "html_framework: should render interleaved text and sub-tags via write()" {
     val result = html {
         body {

@@ -261,6 +261,90 @@ type BodyBuilder(var content: String = "") {
         }
         content = content + "<hr" + attrs + " />"
     }
+
+    // Injects untouched HTML (not escaped). Use for raw snippets only.
+    fun raw(html: String) {
+        content = content + html
+    }
+
+    fun pre(text: String = "", class: String = "", id: String = "") {
+        renderTagSimple("pre", text, class, id)
+    }
+
+    fun pre(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
+        renderTag("pre", class, id, init)
+    }
+
+    fun code(text: String = "", class: String = "", id: String = "") {
+        renderTagSimple("code", text, class, id)
+    }
+
+    fun code(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
+        renderTag("code", class, id, init)
+    }
+
+    fun select(class: String = "", id: String = "", name: String = "", init: BodyBuilder.() -> Void) {
+        val builder = BodyBuilder()
+        init(builder)
+        var attrs = ""
+        if (class != "") {
+            attrs = attrs + " class=\"" + escapeHtml(class) + "\""
+        }
+        if (id != "") {
+            attrs = attrs + " id=\"" + escapeHtml(id) + "\""
+        }
+        if (name != "") {
+            attrs = attrs + " name=\"" + escapeHtml(name) + "\""
+        }
+        content = content + "<select" + attrs + ">" + builder.content + "</select>"
+    }
+
+    fun option(text: String = "", value: String = "", class: String = "", id: String = "") {
+        var attrs = ""
+        if (value != "") {
+            attrs = attrs + " value=\"" + escapeHtml(value) + "\""
+        }
+        if (class != "") {
+            attrs = attrs + " class=\"" + escapeHtml(class) + "\""
+        }
+        if (id != "") {
+            attrs = attrs + " id=\"" + escapeHtml(id) + "\""
+        }
+        content = content + "<option" + attrs + ">" + escapeHtml(text) + "</option>"
+    }
+
+    fun input(inputType: String = "data", class: String = "", id: String = "", placeholder: String = "", value: String = "") {
+        var attrs = ""
+        if (inputType != "") {
+            attrs = attrs + " type=\"" + escapeHtml(inputType) + "\""
+        }
+        if (class != "") {
+            attrs = attrs + " class=\"" + escapeHtml(class) + "\""
+        }
+        if (id != "") {
+            attrs = attrs + " id=\"" + escapeHtml(id) + "\""
+        }
+        if (placeholder != "") {
+            attrs = attrs + " placeholder=\"" + escapeHtml(placeholder) + "\""
+        }
+        if (value != "") {
+            attrs = attrs + " value=\"" + escapeHtml(value) + "\""
+        }
+        content = content + "<input" + attrs + " />"
+    }
+
+    fun textarea(text: String = "", class: String = "", id: String = "") {
+        renderTagSimple("textarea", text, class, id)
+    }
+
+    fun textarea(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
+        renderTag("textarea", class, id, init)
+    }
+
+    // Inline script. The code is injected raw (never escaped).
+    fun script(code: String) {
+        content = content + "<script>" + code + "</script>"
+    }
 }
 
 fun html(init: HTMLBuilder.() -> Void): String {
