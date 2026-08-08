@@ -181,7 +181,7 @@ type BodyBuilder(var content: String = "") {
         renderTag("span", class, id, init)
     }
 
-    fun a(href: String = "", class: String = "", id: String = "", text: String = "") {
+    fun a(href: String = "", class: String = "", id: String = "", text: String = "", target: String = "", rel: String = "") {
         var attrs = ""
         if (href != "") {
             attrs = attrs + " href=\"" + escapeHtml(href) + "\""
