@@ -83,6 +83,28 @@ type HeadBuilder(var content: String = "") {
     }
 }
 
+type SvgBuilder(var content: String = "") {
+
+    fun g(fill: String = "", stroke: String = "", strokeWidth: String = "", strokeLinecap: String = "", init: SvgBuilder.() -> Void) {
+        val builder = SvgBuilder()
+        init(builder)
+        var attrs = ""
+        if (fill != "") { attrs = attrs + " fill=\"" + escapeHtml(fill) + "\"" }
+        if (stroke != "") { attrs = attrs + " stroke=\"" + escapeHtml(stroke) + "\"" }
+        if (strokeWidth != "") { attrs = attrs + " stroke-width=\"" + escapeHtml(strokeWidth) + "\"" }
+        if (strokeLinecap != "") { attrs = attrs + " stroke-linecap=\"" + escapeHtml(strokeLinecap) + "\"" }
+        content = content + "<g" + attrs + ">" + builder.content + "</g>"
+    }
+
+    fun path(d: String = "", fill: String = "", opacity: String = "") {
+        var attrs = ""
+        if (d != "") { attrs = attrs + " d=\"" + escapeHtml(d) + "\"" }
+        if (fill != "") { attrs = attrs + " fill=\"" + escapeHtml(fill) + "\"" }
+        if (opacity != "") { attrs = attrs + " opacity=\"" + escapeHtml(opacity) + "\"" }
+        content = content + "<path" + attrs + " />"
+    }
+}
+
 type BodyBuilder(var content: String = "") {
 
     fun renderTagSimple(tag: String, text: String, class: String, id: String) {
@@ -105,6 +127,18 @@ type BodyBuilder(var content: String = "") {
         }
         if (id != "") {
             attrs = attrs + " id=\"" + escapeHtml(id) + "\""
+        }
+        if (hxGet != "") {
+            attrs = attrs + " hx-get=\"" + escapeHtml(hxGet) + "\""
+        }
+        if (hxTarget != "") {
+            attrs = attrs + " hx-target=\"" + escapeHtml(hxTarget) + "\""
+        }
+        if (hxSwap != "") {
+            attrs = attrs + " hx-swap=\"" + escapeHtml(hxSwap) + "\""
+        }
+        if (hxTrigger != "") {
+            attrs = attrs + " hx-trigger=\"" + escapeHtml(hxTrigger) + "\""
         }
         content = content + "<" + tag + attrs + ">" + builder.content + "</" + tag + ">"
     }
@@ -149,8 +183,35 @@ type BodyBuilder(var content: String = "") {
         renderTag("p", class, id, init)
     }
 
-    fun div(class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", init: BodyBuilder.() -> Void) {
-        renderTagHtmx("div", class, id, hxGet, hxTarget, hxSwap, hxTrigger, init)
+    fun div(class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", dataHint: String = "", dataOutput: String = "", init: BodyBuilder.() -> Void) {
+        val builder = BodyBuilder()
+        init(builder)
+        var attrs = ""
+        if (class != "") {
+            attrs = attrs + " class=\"" + escapeHtml(class) + "\""
+        }
+        if (id != "") {
+            attrs = attrs + " id=\"" + escapeHtml(id) + "\""
+        }
+        if (hxGet != "") {
+            attrs = attrs + " hx-get=\"" + escapeHtml(hxGet) + "\""
+        }
+        if (hxTarget != "") {
+            attrs = attrs + " hx-target=\"" + escapeHtml(hxTarget) + "\""
+        }
+        if (hxSwap != "") {
+            attrs = attrs + " hx-swap=\"" + escapeHtml(hxSwap) + "\""
+        }
+        if (hxTrigger != "") {
+            attrs = attrs + " hx-trigger=\"" + escapeHtml(hxTrigger) + "\""
+        }
+        if (dataHint != "") {
+            attrs = attrs + " data-hint=\"" + escapeHtml(dataHint) + "\""
+        }
+        if (dataOutput != "") {
+            attrs = attrs + " data-output=\"" + escapeHtml(dataOutput) + "\""
+        }
+        content = content + "<div" + attrs + ">" + builder.content + "</div>"
     }
 
     fun header(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
@@ -165,8 +226,12 @@ type BodyBuilder(var content: String = "") {
         renderTag("main", class, id, init)
     }
 
-    fun section(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("section", class, id, init)
+    fun footer(class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", dataHint: String = "", dataOutput: String = "", init: BodyBuilder.() -> Void) {
+        renderTagHtmx("footer", class, id, hxGet, hxTarget, hxSwap, hxTrigger, init)
+    }
+
+    fun section(class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", dataHint: String = "", dataOutput: String = "", init: BodyBuilder.() -> Void) {
+        renderTagHtmx("section", class, id, hxGet, hxTarget, hxSwap, hxTrigger, init)
     }
 
     fun b(text: String = "", class: String = "", id: String = "") {
@@ -175,6 +240,22 @@ type BodyBuilder(var content: String = "") {
 
     fun b(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
         renderTag("b", class, id, init)
+    }
+
+    fun strong(text: String = "", class: String = "", id: String = "") {
+        renderTagSimple("strong", text, class, id)
+    }
+
+    fun strong(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
+        renderTag("strong", class, id, init)
+    }
+
+    fun small(text: String = "", class: String = "", id: String = "") {
+        renderTagSimple("small", text, class, id)
+    }
+
+    fun small(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
+        renderTag("small", class, id, init)
     }
 
     fun i(text: String = "", class: String = "", id: String = "") {
@@ -204,10 +285,16 @@ type BodyBuilder(var content: String = "") {
         if (id != "") {
             attrs = attrs + " id=\"" + escapeHtml(id) + "\""
         }
+        if (target != "") {
+            attrs = attrs + " target=\"" + escapeHtml(target) + "\""
+        }
+        if (rel != "") {
+            attrs = attrs + " rel=\"" + escapeHtml(rel) + "\""
+        }
         content = content + "<a" + attrs + ">" + escapeHtml(text) + "</a>"
     }
 
-    fun a(href: String = "", class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
+    fun a(href: String = "", class: String = "", id: String = "", target: String = "", rel: String = "", init: BodyBuilder.() -> Void) {
         val builder = BodyBuilder()
         init(builder)
         var attrs = ""
@@ -219,6 +306,12 @@ type BodyBuilder(var content: String = "") {
         }
         if (id != "") {
             attrs = attrs + " id=\"" + escapeHtml(id) + "\""
+        }
+        if (target != "") {
+            attrs = attrs + " target=\"" + escapeHtml(target) + "\""
+        }
+        if (rel != "") {
+            attrs = attrs + " rel=\"" + escapeHtml(rel) + "\""
         }
         content = content + "<a" + attrs + ">" + builder.content + "</a>"
     }
@@ -321,6 +414,25 @@ type BodyBuilder(var content: String = "") {
         renderTag("code", class, id, init)
     }
 
+    fun svg(viewBox: String = "", class: String = "", preserveAspectRatio: String = "", id: String = "", init: SvgBuilder.() -> Void) {
+        val builder = SvgBuilder()
+        init(builder)
+        var attrs = ""
+        if (viewBox != "") {
+            attrs = attrs + " viewBox=\"" + escapeHtml(viewBox) + "\""
+        }
+        if (class != "") {
+            attrs = attrs + " class=\"" + escapeHtml(class) + "\""
+        }
+        if (preserveAspectRatio != "") {
+            attrs = attrs + " preserveAspectRatio=\"" + escapeHtml(preserveAspectRatio) + "\""
+        }
+        if (id != "") {
+            attrs = attrs + " id=\"" + escapeHtml(id) + "\""
+        }
+        content = content + "<svg" + attrs + ">" + builder.content + "</svg>"
+    }
+
     fun select(class: String = "", id: String = "", name: String = "", init: BodyBuilder.() -> Void) {
         val builder = BodyBuilder()
         init(builder)
@@ -379,14 +491,28 @@ type BodyBuilder(var content: String = "") {
         renderTag("textarea", class, id, init)
     }
 
-    // Inline script. The code is injected raw (never escaped).
-    fun script(code: String) {
-        content = content + "<script>" + code + "</script>"
+    fun script(src: String, scriptType: String = "module") {
+        var attrs = ""
+        if (src != "") {
+            attrs = attrs + " src=\"" + escapeHtml(src) + "\""
+        }
+        attrs = attrs + " type=\"" + escapeHtml(scriptType) + "\""
+        content = content + "<script" + attrs + "></script>"
     }
+
+    // fun script(code: () -> String) {
+    //     content = content + "<script>" + code() + "</script>"
+    // }
 }
 
 fun html(init: HTMLBuilder.() -> Void): String {
     val builder = HTMLBuilder()
     init(builder)
     return "<!DOCTYPE html><html>" + builder.content + "</html>"
+}
+
+fun fragment(init: BodyBuilder.() -> Void): String {
+    val builder = BodyBuilder()
+    init(builder)
+    return builder.content
 }
