@@ -223,7 +223,7 @@ type BodyBuilder(var content: String = "") {
         content = content + "<a" + attrs + ">" + builder.content + "</a>"
     }
 
-    fun button(btnType: String = "button", class: String = "", id: String = "", text: String = "") {
+    fun button(btnType: String = "button", class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", text: String = "") {
         var attrs = ""
         if (btnType != "") {
             attrs = attrs + " type=\"" + escapeHtml(btnType) + "\""
@@ -234,10 +234,19 @@ type BodyBuilder(var content: String = "") {
         if (id != "") {
             attrs = attrs + " id=\"" + escapeHtml(id) + "\""
         }
+        if (hxGet != "") {
+            attrs = attrs + " hx-get=\"" + escapeHtml(hxGet) + "\""
+        }
+        if (hxTarget != "") {
+            attrs = attrs + " hx-target=\"" + escapeHtml(hxTarget) + "\""
+        }
+        if (hxSwap != "") {
+            attrs = attrs + " hx-swap=\"" + escapeHtml(hxSwap) + "\""
+        }
         content = content + "<button" + attrs + ">" + escapeHtml(text) + "</button>"
     }
 
-    fun button(btnType: String = "button", class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
+    fun button(btnType: String = "button", class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", init: BodyBuilder.() -> Void) {
         val builder = BodyBuilder()
         init(builder)
         var attrs = ""
@@ -249,6 +258,15 @@ type BodyBuilder(var content: String = "") {
         }
         if (id != "") {
             attrs = attrs + " id=\"" + escapeHtml(id) + "\""
+        }
+        if (hxGet != "") {
+            attrs = attrs + " hx-get=\"" + escapeHtml(hxGet) + "\""
+        }
+        if (hxTarget != "") {
+            attrs = attrs + " hx-target=\"" + escapeHtml(hxTarget) + "\""
+        }
+        if (hxSwap != "") {
+            attrs = attrs + " hx-swap=\"" + escapeHtml(hxSwap) + "\""
         }
         content = content + "<button" + attrs + ">" + builder.content + "</button>"
     }
