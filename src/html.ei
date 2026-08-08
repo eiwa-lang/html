@@ -96,7 +96,7 @@ type BodyBuilder(var content: String = "") {
         content = content + "<" + tag + attrs + ">" + escapeHtml(text) + "</" + tag + ">"
     }
 
-    fun renderTag(tag: String, class: String, id: String, init: BodyBuilder.() -> Void) {
+    fun renderTag(tag: String, class: String, id: String, hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", init: BodyBuilder.() -> Void) {
         val builder = BodyBuilder()
         init(builder)
         var attrs = ""
@@ -145,8 +145,8 @@ type BodyBuilder(var content: String = "") {
         renderTag("p", class, id, init)
     }
 
-    fun div(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("div", class, id, init)
+    fun div(class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", init: BodyBuilder.() -> Void) {
+        renderTag("div", class, id, hxGet, hxTarget, hxSwap, hxTrigger, init)
     }
 
     fun header(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
