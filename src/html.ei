@@ -157,6 +157,10 @@ type BodyBuilder(var content: String = "") {
         renderTag("nav", class, id, init)
     }
 
+    fun main(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
+        renderTag("main", class, id, init)
+    }
+
     fun b(text: String = "", class: String = "", id: String = "") {
         renderTagSimple("b", text, class, id)
     }
