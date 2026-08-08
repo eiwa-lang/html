@@ -110,7 +110,7 @@ type BodyBuilder(var content: String = "") {
     }
 
     fun renderTag(tag: String, class: String, id: String, init: BodyBuilder.() -> Void) {
-        renderTagHtmx(tag, class, id, init)
+        renderTagHtmx(tag = tag, class = class, id = id, init = init)
     }
 
     fun write(text: String) {
