@@ -8,6 +8,22 @@ fun escapeHtml(str: String): String {
     return result
 }
 
+// Renders arbitrary extra attributes (Alpine.js `x-*`/`@*`/`:*`, htmx,
+// ARIA, ...) as ` key="escaped-value"` pairs. Empty map renders nothing.
+fun renderAttrs(attrs: Map<String, String>): String {
+    var out = ""
+    var i = 0
+    while (i < attrs.entries.size()) {
+        var curr = attrs.entries.get(i)
+        while (curr != null) {
+            out = "$out ${curr!!.key}=\"${escapeHtml(curr!!.value)}\""
+            curr = curr!!.next
+        }
+        i = i + 1
+    }
+    return out
+}
+
 type HTMLBuilder(var content: String = "") {
 
     fun head(init: HeadBuilder.() -> Void) {
@@ -81,6 +97,12 @@ type HeadBuilder(var content: String = "") {
         content = "$content<script$attrs></script>"
     }
 
+    // Inline <script> with raw JS code (e.g. tailwind.config). The code is
+    // emitted verbatim — never interpolate untrusted data here.
+    fun scriptCode(code: String) {
+        content = "$content<script>$code</script>"
+    }
+
     fun style(css: String = "") {
         content = "$content<style>$css</style>"
     }
@@ -110,48 +132,100 @@ type SvgBuilder(var content: String = "") {
 
 type BodyBuilder(var content: String = "") {
 
-    fun renderTagSimple(tag: String, text: String, class: String, id: String) {
-        var attrs = ""
+    fun renderTagSimple(tag: String, text: String, class: String, id: String, attrs: Map<String, String> = Map()) {
+        var attrStr = ""
         if (class != "") {
-            attrs = "$attrs class=\"${escapeHtml(class)}\""
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
         }
         if (id != "") {
-            attrs = "$attrs id=\"${escapeHtml(id)}\""
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
         }
-        content = "$content<$tag$attrs>${escapeHtml(text)}</$tag>"
+        attrStr = "$attrStr${renderAttrs(attrs)}"
+        content = "$content<$tag$attrStr>${escapeHtml(text)}</$tag>"
     }
 
-    fun renderTagHtmx(tag: String, class: String, id: String, hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", init: BodyBuilder.() -> Void) {
+    fun renderTagHtmx(tag: String, class: String, id: String, hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", init: BodyBuilder.() -> Void, hxPost: String = "", attrs: Map<String, String> = Map()) {
         val builder = BodyBuilder()
         init(builder)
-        var attrs = ""
+        var attrStr = ""
         if (class != "") {
-            attrs = "$attrs class=\"${escapeHtml(class)}\""
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
         }
         if (id != "") {
-            attrs = "$attrs id=\"${escapeHtml(id)}\""
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
         }
         if (hxGet != "") {
-            attrs = "$attrs hx-get=\"${escapeHtml(hxGet)}\""
+            attrStr = "$attrStr hx-get=\"${escapeHtml(hxGet)}\""
+        }
+        if (hxPost != "") {
+            attrStr = "$attrStr hx-post=\"${escapeHtml(hxPost)}\""
         }
         if (hxTarget != "") {
-            attrs = "$attrs hx-target=\"${escapeHtml(hxTarget)}\""
+            attrStr = "$attrStr hx-target=\"${escapeHtml(hxTarget)}\""
         }
         if (hxSwap != "") {
-            attrs = "$attrs hx-swap=\"${escapeHtml(hxSwap)}\""
+            attrStr = "$attrStr hx-swap=\"${escapeHtml(hxSwap)}\""
         }
         if (hxTrigger != "") {
-            attrs = "$attrs hx-trigger=\"${escapeHtml(hxTrigger)}\""
+            attrStr = "$attrStr hx-trigger=\"${escapeHtml(hxTrigger)}\""
         }
-        content = "$content<$tag$attrs>${builder.content}</$tag>"
+        attrStr = "$attrStr${renderAttrs(attrs)}"
+        content = "$content<$tag$attrStr>${builder.content}</$tag>"
     }
 
-    fun renderTag(tag: String, class: String, id: String, init: BodyBuilder.() -> Void) {
-        renderTagHtmx(tag = tag, class = class, id = id, init = init)
+    fun renderTag(tag: String, class: String, id: String, init: BodyBuilder.() -> Void, attrs: Map<String, String> = Map()) {
+        renderTagHtmx(tag = tag, class = class, id = id, init = init, attrs = attrs)
+    }
+
+    // Escape hatch for any tag not covered above, with arbitrary attributes.
+    fun tag(name: String, init: BodyBuilder.() -> Void, attrs: Map<String, String> = Map()) {
+        val builder = BodyBuilder()
+        init(builder)
+        content = "$content<$name${renderAttrs(attrs)}>${builder.content}</$name>"
+    }
+
+    fun form(class: String = "", id: String = "", hxPost: String = "", hxTarget: String = "", hxSwap: String = "", init: BodyBuilder.() -> Void, attrs: Map<String, String> = Map<String, String>()) {
+        renderTagHtmx(tag = "form", class = class, id = id, hxPost = hxPost, hxTarget = hxTarget, hxSwap = hxSwap, init = init, attrs = attrs)
+    }
+
+    fun label(text: String = "", class: String = "", id: String = "", htmlFor: String = "", attrs: Map<String, String> = Map<String, String>()) {
+        var attrStr = ""
+        if (class != "") {
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
+        }
+        if (id != "") {
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
+        }
+        if (htmlFor != "") {
+            attrStr = "$attrStr for=\"${escapeHtml(htmlFor)}\""
+        }
+        attrStr = "$attrStr${renderAttrs(attrs)}"
+        content = "$content<label$attrStr>${escapeHtml(text)}</label>"
+    }
+
+    fun label(class: String = "", id: String = "", htmlFor: String = "", init: BodyBuilder.() -> Void, attrs: Map<String, String> = Map<String, String>()) {
+        val builder = BodyBuilder()
+        init(builder)
+        var attrStr = ""
+        if (class != "") {
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
+        }
+        if (id != "") {
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
+        }
+        if (htmlFor != "") {
+            attrStr = "$attrStr for=\"${escapeHtml(htmlFor)}\""
+        }
+        attrStr = "$attrStr${renderAttrs(attrs)}"
+        content = "$content<label$attrStr>${builder.content}</label>"
     }
 
     fun write(text: String) {
         content = content + escapeHtml(text)
+    }
+
+    fun raw(insecure: String) {
+        content = content + insecure
     }
 
     fun h1(text: String = "", class: String = "", id: String = "") {
@@ -186,35 +260,36 @@ type BodyBuilder(var content: String = "") {
         renderTag("p", class, id, init)
     }
 
-    fun div(class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", dataHint: String = "", dataOutput: String = "", init: BodyBuilder.() -> Void) {
+    fun div(class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", dataHint: String = "", dataOutput: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
         val builder = BodyBuilder()
         init(builder)
-        var attrs = ""
+        var attrStr = ""
         if (class != "") {
-            attrs = "$attrs class=\"${escapeHtml(class)}\""
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
         }
         if (id != "") {
-            attrs = "$attrs id=\"${escapeHtml(id)}\""
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
         }
         if (hxGet != "") {
-            attrs = "$attrs hx-get=\"${escapeHtml(hxGet)}\""
+            attrStr = "$attrStr hx-get=\"${escapeHtml(hxGet)}\""
         }
         if (hxTarget != "") {
-            attrs = "$attrs hx-target=\"${escapeHtml(hxTarget)}\""
+            attrStr = "$attrStr hx-target=\"${escapeHtml(hxTarget)}\""
         }
         if (hxSwap != "") {
-            attrs = "$attrs hx-swap=\"${escapeHtml(hxSwap)}\""
+            attrStr = "$attrStr hx-swap=\"${escapeHtml(hxSwap)}\""
         }
         if (hxTrigger != "") {
-            attrs = "$attrs hx-trigger=\"${escapeHtml(hxTrigger)}\""
+            attrStr = "$attrStr hx-trigger=\"${escapeHtml(hxTrigger)}\""
         }
         if (dataHint != "") {
-            attrs = "$attrs data-hint=\"${escapeHtml(dataHint)}\""
+            attrStr = "$attrStr data-hint=\"${escapeHtml(dataHint)}\""
         }
         if (dataOutput != "") {
-            attrs = "$attrs data-output=\"${escapeHtml(dataOutput)}\""
+            attrStr = "$attrStr data-output=\"${escapeHtml(dataOutput)}\""
         }
-        content = "$content<div$attrs>${builder.content}</div>"
+        attrStr = "$attrStr${renderAttrs(attrs)}"
+        content = "$content<div$attrStr>${builder.content}</div>"
     }
 
     fun header(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
@@ -277,12 +352,35 @@ type BodyBuilder(var content: String = "") {
         renderTag("i", class, id, init)
     }
 
-    fun span(text: String = "", class: String = "", id: String = "") {
+    fun span(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
+        renderTag("span", class, id, init)
+    }
+
+    fun span(class: String = "", id: String = "", text: String = "") {
         renderTagSimple("span", text, class, id)
     }
 
-    fun span(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("span", class, id, init)
+    fun a(href: String = "", class: String = "", id: String = "", target: String = "", rel: String = "", init: BodyBuilder.() -> Void, attrs: Map<String, String> = Map<String, String>()) {
+        val builder = BodyBuilder()
+        init(builder)
+        var attrStr = ""
+        if (href != "") {
+            attrStr = "$attrStr href=\"${escapeHtml(href)}\""
+        }
+        if (class != "") {
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
+        }
+        if (id != "") {
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
+        }
+        if (target != "") {
+            attrStr = "$attrStr target=\"${escapeHtml(target)}\""
+        }
+        if (rel != "") {
+            attrStr = "$attrStr rel=\"${escapeHtml(rel)}\""
+        }
+        attrStr = "$attrStr${renderAttrs(attrs)}"
+        content = "$content<a$attrStr>${builder.content}</a>"
     }
 
     fun a(href: String = "", class: String = "", id: String = "", text: String = "", target: String = "", rel: String = "") {
@@ -305,91 +403,60 @@ type BodyBuilder(var content: String = "") {
         content = "$content<a$attrs>${escapeHtml(text)}</a>"
     }
 
-    fun a(href: String = "", class: String = "", id: String = "", target: String = "", rel: String = "", init: BodyBuilder.() -> Void) {
-        val builder = BodyBuilder()
-        init(builder)
-        var attrs = ""
-        if (href != "") {
-            attrs = "$attrs href=\"${escapeHtml(href)}\""
-        }
-        if (class != "") {
-            attrs = "$attrs class=\"${escapeHtml(class)}\""
-        }
-        if (id != "") {
-            attrs = "$attrs id=\"${escapeHtml(id)}\""
-        }
-        if (target != "") {
-            attrs = "$attrs target=\"${escapeHtml(target)}\""
-        }
-        if (rel != "") {
-            attrs = "$attrs rel=\"${escapeHtml(rel)}\""
-        }
-        content = "$content<a$attrs>${builder.content}</a>"
-    }
-
-    fun button(btnType: String = "button", class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", text: String = "") {
-        var attrs = ""
+    fun buttonAttrs(btnType: String, class: String, id: String, hxGet: String, hxTarget: String, hxSwap: String, hxPost: String, attrs: Map<String, String>): String {
+        var attrStr = ""
         if (btnType != "") {
-            attrs = "$attrs type=\"${escapeHtml(btnType)}\""
+            attrStr = "$attrStr type=\"${escapeHtml(btnType)}\""
         }
         if (class != "") {
-            attrs = "$attrs class=\"${escapeHtml(class)}\""
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
         }
         if (id != "") {
-            attrs = "$attrs id=\"${escapeHtml(id)}\""
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
         }
         if (hxGet != "") {
-            attrs = "$attrs hx-get=\"${escapeHtml(hxGet)}\""
+            attrStr = "$attrStr hx-get=\"${escapeHtml(hxGet)}\""
+        }
+        if (hxPost != "") {
+            attrStr = "$attrStr hx-post=\"${escapeHtml(hxPost)}\""
         }
         if (hxTarget != "") {
-            attrs = "$attrs hx-target=\"${escapeHtml(hxTarget)}\""
+            attrStr = "$attrStr hx-target=\"${escapeHtml(hxTarget)}\""
         }
         if (hxSwap != "") {
-            attrs = "$attrs hx-swap=\"${escapeHtml(hxSwap)}\""
+            attrStr = "$attrStr hx-swap=\"${escapeHtml(hxSwap)}\""
         }
-        content = "$content<button$attrs>${escapeHtml(text)}</button>"
+        return "$attrStr${renderAttrs(attrs)}"
     }
 
-    fun button(btnType: String = "button", class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", init: BodyBuilder.() -> Void) {
+    fun button(btnType: String = "button", class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxPost: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
         val builder = BodyBuilder()
         init(builder)
-        var attrs = ""
-        if (btnType != "") {
-            attrs = "$attrs type=\"${escapeHtml(btnType)}\""
-        }
-        if (class != "") {
-            attrs = "$attrs class=\"${escapeHtml(class)}\""
-        }
-        if (id != "") {
-            attrs = "$attrs id=\"${escapeHtml(id)}\""
-        }
-        if (hxGet != "") {
-            attrs = "$attrs hx-get=\"${escapeHtml(hxGet)}\""
-        }
-        if (hxTarget != "") {
-            attrs = "$attrs hx-target=\"${escapeHtml(hxTarget)}\""
-        }
-        if (hxSwap != "") {
-            attrs = "$attrs hx-swap=\"${escapeHtml(hxSwap)}\""
-        }
-        content = "$content<button$attrs>${builder.content}</button>"
+        val attrStr = buttonAttrs(btnType, class, id, hxGet, hxTarget, hxSwap, hxPost, attrs)
+        content = "$content<button$attrStr>${builder.content}</button>"
     }
 
-    fun img(src: String = "", alt: String = "", class: String = "", id: String = "") {
-        var attrs = ""
+    fun button(btnType: String = "button", class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", text: String = "", hxPost: String = "", attrs: Map<String, String> = Map()) {
+        val attrStr = buttonAttrs(btnType, class, id, hxGet, hxTarget, hxSwap, hxPost, attrs)
+        content = "$content<button$attrStr>${escapeHtml(text)}</button>"
+    }
+
+    fun img(src: String = "", alt: String = "", class: String = "", id: String = "", attrs: Map<String, String> = Map<String, String>()) {
+        var attrStr = ""
         if (src != "") {
-            attrs = "$attrs src=\"${escapeHtml(src)}\""
+            attrStr = "$attrStr src=\"${escapeHtml(src)}\""
         }
         if (alt != "") {
-            attrs = "$attrs alt=\"${escapeHtml(alt)}\""
+            attrStr = "$attrStr alt=\"${escapeHtml(alt)}\""
         }
         if (class != "") {
-            attrs = "$attrs class=\"${escapeHtml(class)}\""
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
         }
         if (id != "") {
-            attrs = "$attrs id=\"${escapeHtml(id)}\""
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
         }
-        content = "$content<img$attrs />"
+        attrStr = "$attrStr${renderAttrs(attrs)}"
+        content = "$content<img$attrStr />"
     }
 
     fun br() {
@@ -474,32 +541,36 @@ type BodyBuilder(var content: String = "") {
         content = "$content<option$attrs>${escapeHtml(text)}</option>"
     }
 
-    fun input(inputType: String = "data", class: String = "", id: String = "", placeholder: String = "", value: String = "") {
-        var attrs = ""
+    fun input(inputType: String = "text", class: String = "", id: String = "", placeholder: String = "", value: String = "", name: String = "", attrs: Map<String, String> = Map()) {
+        var attrStr = ""
         if (inputType != "") {
-            attrs = "$attrs type=\"${escapeHtml(inputType)}\""
+            attrStr = "$attrStr type=\"${escapeHtml(inputType)}\""
         }
         if (class != "") {
-            attrs = "$attrs class=\"${escapeHtml(class)}\""
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
         }
         if (id != "") {
-            attrs = "$attrs id=\"${escapeHtml(id)}\""
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
         }
         if (placeholder != "") {
-            attrs = "$attrs placeholder=\"${escapeHtml(placeholder)}\""
+            attrStr = "$attrStr placeholder=\"${escapeHtml(placeholder)}\""
         }
         if (value != "") {
-            attrs = "$attrs value=\"${escapeHtml(value)}\""
+            attrStr = "$attrStr value=\"${escapeHtml(value)}\""
         }
-        content = "$content<input$attrs />"
+        if (name != "") {
+            attrStr = "$attrStr name=\"${escapeHtml(name)}\""
+        }
+        attrStr = "$attrStr${renderAttrs(attrs)}"
+        content = "$content<input$attrStr />"
     }
 
-    fun textarea(text: String = "", class: String = "", id: String = "") {
-        renderTagSimple("textarea", text, class, id)
+    fun textarea(class: String = "", id: String = "", name: String = "", placeholder: String = "", text: String = "") {
+        renderTagSimple("textarea", text, class, id, attrs = ["placeholder" of placeholder, "name" of name])
     }
 
-    fun textarea(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("textarea", class, id, init)
+    fun textarea(class: String = "", id: String = "", name: String = "", placeholder: String = "", init: BodyBuilder.() -> Void) {
+        renderTag("textarea", class, id, init, attrs = ["placeholder" of placeholder, "name" of name])
     }
 
     fun script(code: String = "", src: String = "", scriptType: String = "") {

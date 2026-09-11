@@ -77,3 +77,33 @@ test "html_framework: should render interleaved text and sub-tags via write()" {
 
     assert(result == "<!DOCTYPE html><html><body><p>Hello <b>Bold Text</b> &amp; World</p></body></html>")
 }
+
+test "html_framework: attrs map renders arbitrary attributes escaped" {
+    val extra = MutableMap<String, String>()
+    extra.put("x-data", "open")
+    extra.put("@click", "a\"b")
+    val page = html {
+        body {
+            div("box", "", "", "", "", "", "", "", { write("x") }, extra.freeze())
+        }
+    }
+    assert(page.indexOf("x-data=\"open\"") >= 0)
+    assert(page.indexOf("@click=\"a&quot;b\"") >= 0)
+}
+
+test "html_framework: form, label, hxPost button and scriptCode" {
+    val page = html {
+        head {
+            scriptCode("tailwind.config = {}")
+        }
+        body {
+            form("", "", "/terms/accept", "", "none") {
+                button("submit", "cta", "", "", "", "", "Go", "/terms/accept")
+                label("Agree", "", "agree", "agree")
+            }
+        }
+    }
+    assert(page.indexOf("<script>tailwind.config = {}</script>") >= 0)
+    assert(page.indexOf("hx-post=\"/terms/accept\"") >= 0)
+    assert(page.indexOf("for=\"agree\"") >= 0)
+}
