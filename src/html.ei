@@ -296,6 +296,10 @@ type BodyBuilder(var content: String = "") {
         renderTag("header", class, id, init)
     }
 
+    fun article(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("article", class, id, init)
+    }
+
     fun nav(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
         renderTag("nav", class, id, init)
     }
@@ -566,11 +570,39 @@ type BodyBuilder(var content: String = "") {
     }
 
     fun textarea(class: String = "", id: String = "", name: String = "", placeholder: String = "", text: String = "") {
-        renderTagSimple("textarea", text, class, id, attrs = ["placeholder" of placeholder, "name" of name])
+        var attrStr = ""
+        if (class != "") {
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
+        }
+        if (id != "") {
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
+        }
+        if (name != "") {
+            attrStr = "$attrStr name=\"${escapeHtml(name)}\""
+        }
+        if (placeholder != "") {
+            attrStr = "$attrStr placeholder=\"${escapeHtml(placeholder)}\""
+        }
+        content = "$content<textarea$attrStr>${escapeHtml(text)}</textarea>"
     }
 
     fun textarea(class: String = "", id: String = "", name: String = "", placeholder: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("textarea", class, id, init, attrs = ["placeholder" of placeholder, "name" of name])
+        val builder = BodyBuilder()
+        init(builder)
+        var attrStr = ""
+        if (class != "") {
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
+        }
+        if (id != "") {
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
+        }
+        if (name != "") {
+            attrStr = "$attrStr name=\"${escapeHtml(name)}\""
+        }
+        if (placeholder != "") {
+            attrStr = "$attrStr placeholder=\"${escapeHtml(placeholder)}\""
+        }
+        content = "$content<textarea$attrStr>${builder.content}</textarea>"
     }
 
     fun script(code: String = "", src: String = "", scriptType: String = "") {

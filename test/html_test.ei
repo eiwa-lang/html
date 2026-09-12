@@ -43,7 +43,7 @@ test "html_framework: should render new form tags (select/option/input/textarea)
                 option("tools/list", "tools/list")
             }
             input(inputType = "text", id = "params", placeholder = "{\"name\":\"sum\"}")
-            textarea("payload")
+            textarea(text = "payload")
         }
     }
 
@@ -84,7 +84,7 @@ test "html_framework: attrs map renders arbitrary attributes escaped" {
     extra.put("@click", "a\"b")
     val page = html {
         body {
-            div("box", "", "", "", "", "", "", "", { write("x") }, extra.freeze())
+            div(class = "box", attrs = extra.freeze()) { write("x") }
         }
     }
     assert(page.indexOf("x-data=\"open\"") >= 0)
