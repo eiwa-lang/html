@@ -132,13 +132,16 @@ type SvgBuilder(var content: String = "") {
 
 type BodyBuilder(var content: String = "") {
 
-    fun renderTagSimple(tag: String, text: String, class: String, id: String, attrs: Map<String, String> = Map()) {
+    fun renderTagSimple(tag: String, text: String, class: String, id: String, title: String = "", attrs: Map<String, String> = Map()) {
         var attrStr = ""
         if (class != "") {
             attrStr = "$attrStr class=\"${escapeHtml(class)}\""
         }
         if (id != "") {
             attrStr = "$attrStr id=\"${escapeHtml(id)}\""
+        }
+        if (title != "") {
+            attrStr = "$attrStr title=\"${escapeHtml(title)}\""
         }
         attrStr = "$attrStr${renderAttrs(attrs)}"
         content = "$content<$tag$attrStr>${escapeHtml(text)}</$tag>"
@@ -173,7 +176,7 @@ type BodyBuilder(var content: String = "") {
         content = "$content<$tag$attrStr>${builder.content}</$tag>"
     }
 
-    fun renderTag(tag: String, class: String, id: String, init: BodyBuilder.() -> Void, attrs: Map<String, String> = Map()) {
+    fun renderTag(tag: String, class: String, id: String, attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
         renderTagHtmx(tag = tag, class = class, id = id, init = init, attrs = attrs)
     }
 
@@ -232,32 +235,32 @@ type BodyBuilder(var content: String = "") {
         renderTagSimple("h1", text, class, id)
     }
 
-    fun h1(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("h1", class, id, init)
+    fun h1(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("h1", class, id, attrs, init)
     }
 
     fun h2(text: String = "", class: String = "", id: String = "") {
         renderTagSimple("h2", text, class, id)
     }
 
-    fun h2(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("h2", class, id, init)
+    fun h2(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("h2", class, id, attrs, init)
     }
 
     fun h3(text: String = "", class: String = "", id: String = "") {
         renderTagSimple("h3", text, class, id)
     }
 
-    fun h3(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("h3", class, id, init)
+    fun h3(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("h3", class, id, attrs, init)
     }
 
-    fun p(text: String = "", class: String = "", id: String = "") {
-        renderTagSimple("p", text, class, id)
+    fun p(text: String = "", class: String = "", id: String = "", title: String = "") {
+        renderTagSimple("p", text, class, id, title)
     }
 
-    fun p(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("p", class, id, init)
+    fun p(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("p", class, id, attrs, init)
     }
 
     fun div(class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", dataHint: String = "", dataOutput: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
@@ -292,28 +295,28 @@ type BodyBuilder(var content: String = "") {
         content = "$content<div$attrStr>${builder.content}</div>"
     }
 
-    fun header(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("header", class, id, init)
+    fun header(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("header", class, id, attrs, init)
     }
 
     fun article(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
-        renderTag("article", class, id, init)
+        renderTag("article", class, id, attrs, init)
     }
 
-    fun nav(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("nav", class, id, init)
+    fun nav(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("nav", class, id, attrs, init)
     }
 
-    fun ul(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("ul", class, id, init)
+    fun ul(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("ul", class, id, attrs, init)
     }
 
-    fun li(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("li", class, id, init)
+    fun li(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("li", class, id, attrs, init)
     }
 
-    fun main(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("main", class, id, init)
+    fun main(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("main", class, id, attrs, init)
     }
 
     fun footer(class: String = "", id: String = "", hxGet: String = "", hxTarget: String = "", hxSwap: String = "", hxTrigger: String = "", dataHint: String = "", dataOutput: String = "", init: BodyBuilder.() -> Void) {
@@ -328,43 +331,43 @@ type BodyBuilder(var content: String = "") {
         renderTagSimple("b", text, class, id)
     }
 
-    fun b(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("b", class, id, init)
+    fun b(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("b", class, id, attrs, init)
     }
 
     fun strong(text: String = "", class: String = "", id: String = "") {
         renderTagSimple("strong", text, class, id)
     }
 
-    fun strong(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("strong", class, id, init)
+    fun strong(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("strong", class, id, attrs, init)
     }
 
     fun small(text: String = "", class: String = "", id: String = "") {
         renderTagSimple("small", text, class, id)
     }
 
-    fun small(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("small", class, id, init)
+    fun small(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("small", class, id, attrs, init)
     }
 
     fun i(text: String = "", class: String = "", id: String = "") {
         renderTagSimple("i", text, class, id)
     }
 
-    fun i(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("i", class, id, init)
+    fun i(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("i", class, id, attrs, init)
     }
 
-    fun span(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("span", class, id, init)
+    fun span(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("span", class, id, attrs, init)
     }
 
-    fun span(class: String = "", id: String = "", text: String = "") {
-        renderTagSimple("span", text, class, id)
+    fun span(class: String = "", id: String = "", attrs: Map<String, String> = Map(), text: String = "") {
+        renderTagSimple("span", text, class, id, attrs = attrs)
     }
 
-    fun a(href: String = "", class: String = "", id: String = "", target: String = "", rel: String = "", init: BodyBuilder.() -> Void, attrs: Map<String, String> = Map<String, String>()) {
+    fun a(href: String = "", class: String = "", id: String = "", target: String = "", rel: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
         val builder = BodyBuilder()
         init(builder)
         var attrStr = ""
@@ -484,16 +487,16 @@ type BodyBuilder(var content: String = "") {
         renderTagSimple("pre", text, class, id)
     }
 
-    fun pre(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("pre", class, id, init)
+    fun pre(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("pre", class, id, attrs, init)
     }
 
     fun code(text: String = "", class: String = "", id: String = "") {
         renderTagSimple("code", text, class, id)
     }
 
-    fun code(class: String = "", id: String = "", init: BodyBuilder.() -> Void) {
-        renderTag("code", class, id, init)
+    fun code(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("code", class, id, attrs, init)
     }
 
     fun svg(viewBox: String = "", class: String = "", preserveAspectRatio: String = "", id: String = "", init: SvgBuilder.() -> Void) {
