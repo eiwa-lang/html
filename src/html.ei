@@ -267,6 +267,14 @@ type BodyBuilder(var content: String = "") {
         renderTag("h4", class, id, attrs, init)
     }
 
+    fun h5(text: String = "", class: String = "", id: String = "") {
+        renderTagSimple("h5", text, class, id)
+    }
+
+    fun h5(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("h5", class, id, attrs, init)
+    }
+
     fun p(text: String = "", class: String = "", id: String = "", title: String = "") {
         renderTagSimple("p", text, class, id, title)
     }
