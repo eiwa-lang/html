@@ -69,7 +69,7 @@ type HeadBuilder(var content: String = "") {
         content = "$content<meta$attrs />"
     }
 
-    fun link(rel: String = "", href: String = "", linkType: String = "", sizes: String = "") {
+    fun link(rel: String = "", href: String = "", linkType: String = "", sizes: String = "", crossOrigin: String = "") {
         var attrs = ""
         if (rel != "") {
             attrs = "$attrs rel=\"${escapeHtml(rel)}\""
@@ -83,10 +83,13 @@ type HeadBuilder(var content: String = "") {
         if (sizes != "") {
             attrs = "$attrs sizes=\"${escapeHtml(sizes)}\""
         }
+        if (crossOrigin != "") {
+            attrs = "$attrs crossorigin=\"${escapeHtml(crossOrigin)}\""
+        }
         content = "$content<link$attrs />"
     }
 
-    fun script(src: String = "", scriptType: String = "") {
+    fun script(src: String = "", scriptType: String = "", defer: Bool = false, raw: String = "") {
         var attrs = ""
         if (src != "") {
             attrs = "$attrs src=\"${escapeHtml(src)}\""
@@ -94,13 +97,14 @@ type HeadBuilder(var content: String = "") {
         if (scriptType != "") {
             attrs = "$attrs type=\"${escapeHtml(scriptType)}\""
         }
-        content = "$content<script$attrs></script>"
-    }
-
-    // Inline <script> with raw JS code (e.g. tailwind.config). The code is
-    // emitted verbatim — never interpolate untrusted data here.
-    fun scriptCode(code: String) {
-        content = "$content<script>$code</script>"
+        if (defer) {
+            attrs = "$attrs defer=\"defer\""
+        }
+        if (raw != "") {
+            content = "$content<script$attrs>${raw}</script>"
+        } else {
+            content = "$content<script$attrs></script>"
+        }
     }
 
     fun style(css: String = "") {
@@ -255,6 +259,14 @@ type BodyBuilder(var content: String = "") {
         renderTag("h3", class, id, attrs, init)
     }
 
+    fun h4(text: String = "", class: String = "", id: String = "") {
+        renderTagSimple("h4", text, class, id)
+    }
+
+    fun h4(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("h4", class, id, attrs, init)
+    }
+
     fun p(text: String = "", class: String = "", id: String = "", title: String = "") {
         renderTagSimple("p", text, class, id, title)
     }
@@ -301,6 +313,14 @@ type BodyBuilder(var content: String = "") {
 
     fun article(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
         renderTag("article", class, id, attrs, init)
+    }
+
+    fun aside(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("aside", class, id, attrs, init)
+    }
+
+    fun template(attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
+        renderTag("template", "", "", attrs, init)
     }
 
     fun nav(class: String = "", id: String = "", attrs: Map<String, String> = Map(), init: BodyBuilder.() -> Void) {
@@ -548,7 +568,16 @@ type BodyBuilder(var content: String = "") {
         content = "$content<option$attrs>${escapeHtml(text)}</option>"
     }
 
-    fun input(inputType: String = "text", class: String = "", id: String = "", placeholder: String = "", value: String = "", name: String = "", attrs: Map<String, String> = Map()) {
+    fun input(
+            inputType: String = "text",
+            class: String = "",
+            id: String = "",
+            placeholder: String = "",
+            value: String = "",
+            name: String = "",
+            checked: Bool = false,
+            accept: String = "",
+            attrs: Map<String, String> = Map()) {
         var attrStr = ""
         if (inputType != "") {
             attrStr = "$attrStr type=\"${escapeHtml(inputType)}\""
@@ -564,6 +593,12 @@ type BodyBuilder(var content: String = "") {
         }
         if (value != "") {
             attrStr = "$attrStr value=\"${escapeHtml(value)}\""
+        }
+        if (accept != "") {
+            attrStr = "$attrStr accept=\"${escapeHtml(accept)}\""
+        }
+        if (checked) {
+            attrStr = "$attrStr checked"
         }
         if (name != "") {
             attrStr = "$attrStr name=\"${escapeHtml(name)}\""
@@ -608,19 +643,23 @@ type BodyBuilder(var content: String = "") {
         content = "$content<textarea$attrStr>${builder.content}</textarea>"
     }
 
-    fun script(code: String = "", src: String = "", scriptType: String = "") {
+    fun script(src: String = "", scriptType: String = "", defer: Bool = false, raw: String = "") {
+        var attrs = ""
         if (src != "") {
-            val st = if (scriptType != "") scriptType else "module"
-            val attrs = " src=\"${escapeHtml(src)}\" type=\"${escapeHtml(st)}\""
-            content = "$content<script$attrs></script>"
+            attrs = "$attrs src=\"${escapeHtml(src)}\""
+        }
+        if (scriptType != "") {
+            attrs = "$attrs type=\"${escapeHtml(scriptType)}\""
+        }
+        if (defer) {
+            attrs = "$attrs defer=\"defer\""
+        }
+        if (raw != "") {
+            content = "$content<script$attrs>${raw}</script>"
         } else {
-            content = "$content<script>$code</script>"
+            content = "$content<script$attrs></script>"
         }
     }
-
-    // fun script(code: () -> String) {
-    //     content = content + "<script>" + code() + "</script>"
-    // }
 }
 
 fun html(init: HTMLBuilder.() -> Void): String {

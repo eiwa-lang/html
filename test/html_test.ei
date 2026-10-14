@@ -55,7 +55,7 @@ test "html_framework: should render pre/code and raw/script injection" {
     val result = html {
         body {
             pre("argument<Int>(a)")
-            script("var m = document.getElementById('method');")
+            script(raw = "var m = document.getElementById('method');")
             raw("<marquee>raw</marquee>")
         }
     }
@@ -91,10 +91,10 @@ test "html_framework: attrs map renders arbitrary attributes escaped" {
     assert(page.indexOf("@click=\"a&quot;b\"") >= 0)
 }
 
-test "html_framework: form, label, hxPost button and scriptCode" {
+test "html_framework: form, label, hxPost button and inline script" {
     val page = html {
         head {
-            scriptCode("tailwind.config = {}")
+            script(raw = "tailwind.config = {}")
         }
         body {
             form("", "", "/terms/accept", "", "none") {
