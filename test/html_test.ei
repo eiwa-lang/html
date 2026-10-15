@@ -107,3 +107,12 @@ test "html_framework: form, label, hxPost button and inline script" {
     assert(page.indexOf("hx-post=\"/terms/accept\"") >= 0)
     assert(page.indexOf("for=\"agree\"") >= 0)
 }
+
+test "html_framework: canvas renders with class, id and attrs" {
+    val page = html {
+        body {
+            canvas(class = "w-full h-full", id = "editor-canvas")
+        }
+    }
+    assert(page.indexOf("<canvas class=\"w-full h-full\" id=\"editor-canvas\"></canvas>") >= 0)
+}

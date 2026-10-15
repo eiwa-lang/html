@@ -494,6 +494,18 @@ type BodyBuilder(var content: String = "") {
         content = "$content<img$attrStr />"
     }
 
+    fun canvas(class: String = "", id: String = "", attrs: Map<String, String> = Map<String, String>()) {
+        var attrStr = ""
+        if (class != "") {
+            attrStr = "$attrStr class=\"${escapeHtml(class)}\""
+        }
+        if (id != "") {
+            attrStr = "$attrStr id=\"${escapeHtml(id)}\""
+        }
+        attrStr = "$attrStr${renderAttrs(attrs)}"
+        content = "$content<canvas$attrStr></canvas>"
+    }
+
     fun br() {
         content = "$content<br />"
     }
